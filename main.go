@@ -19,10 +19,12 @@ import (
 func main() {
 	var destdir string
 	var workdir string
+	var stylesheet string
 	var verbose bool
 
 	flag.StringVar(&destdir, "destdir", ".", "destination directory for feed files")
 	flag.StringVar(&workdir, "workdir", ".", "working directory with a git repository")
+	flag.StringVar(&stylesheet, "stylesheet", "", "xslt stylesheet to inject into atom feed")
 	flag.BoolVar(&verbose, "verbose", false, "turn on verbose mode")
 	flag.Parse()
 
@@ -162,6 +164,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to generate atom feed: %v", err)
 	}
+	if stylesheet != "" {
+		atom = injectStylesheet(atom, stylesheet)
+	}
 	if err := atomic.WriteFile(filepath.Join(destdir, "feed.xml"), bytes.NewReader([]byte(atom))); err != nil {
 		log.Fatalf("failed to write atom feed: %v", err)
 	}
@@ -196,4 +201,11 @@ func main() {
 	if verbose {
 		log.Printf("files written: %s", strings.Join(files, ", "))
 	}
+}
+
+func injectStylesheet(atom string, style string) string {
+	preamble := `<?xml version="1.0" encoding="UTF-8"?>`
+	stylesheet := fmt.Sprintf(`<?xml-stylesheet href="%s" type="text/xsl"?>`, style)
+
+	return strings.Replace(atom, preamble, fmt.Sprintf("%s\n%s\n", preamble, stylesheet), 1)
 }
