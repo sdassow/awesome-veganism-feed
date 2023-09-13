@@ -83,7 +83,7 @@ func main() {
 
 	// setup feed
 	feed := &feeds.Feed{
-		Title:       "AwesomeVeganism Feed",
+		Title:       "Awesome Veganism Feed",
 		Link:        &feeds.Link{Href: "https://awesome-veganism.com/"},
 		Description: "A curated list of awesome resources, pointers, and tips to make veganism easy and accessible to everyone.",
 		Created: commits[len(commits)-1].Author.When,
