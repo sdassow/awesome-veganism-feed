@@ -165,9 +165,9 @@ func main() {
 		log.Fatalf("failed to generate atom feed: %v", err)
 	}
 	if stylesheet != "" {
-		atom = injectStylesheet(atom, stylesheet)
+		atom = injectAtomStylesheet(atom, stylesheet)
 	}
-	atom = adjustLinks(atom, "feed.xml")
+	atom = adjustAtomLinks(atom, "feed.xml")
 	if err := atomic.WriteFile(filepath.Join(destdir, "feed.xml"), bytes.NewReader([]byte(atom))); err != nil {
 		log.Fatalf("failed to write atom feed: %v", err)
 	}
@@ -204,14 +204,14 @@ func main() {
 	}
 }
 
-func injectStylesheet(atom string, style string) string {
+func injectAtomStylesheet(atom string, style string) string {
 	preamble := `<?xml version="1.0" encoding="UTF-8"?>`
 	stylesheet := fmt.Sprintf(`<?xml-stylesheet href="%s" type="text/xsl"?>`, style)
 
 	return strings.Replace(atom, preamble, fmt.Sprintf("%s\n%s\n", preamble, stylesheet), 1)
 }
 
-func adjustLinks(atom string, file string) string {
+func adjustAtomLinks(atom string, file string) string {
 	re := regexp.MustCompile(`(?m)^(\s*<link href="[^"]+)"></link>`)
 
 	return re.ReplaceAllString(atom, `${1}`+file+`" rel="self"/>`+"\n"+`${1}" rel="alternate"/>`)
