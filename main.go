@@ -185,6 +185,7 @@ func main() {
 		log.Fatalf("failed to generate rss feed: %v", err)
 	}
 	rss = adjustRssAuthors(rss)
+	rss = addRssAtomLink(rss, "feed.rss")
 	if err := atomic.WriteFile(filepath.Join(destdir, "feed.rss"), bytes.NewReader([]byte(rss))); err != nil {
 		log.Fatalf("failed to write rss feed: %v", err)
 	}
@@ -225,4 +226,23 @@ func adjustRssAuthors(rss string) string {
 	rss = dcre.ReplaceAllString(rss, "\n"+`$1 xmlns:dc="http://purl.org/dc/elements/1.1/">`)
 
 	return re.ReplaceAllString(rss, `<dc:creator>$1</dc:creator>`)
+}
+
+func addRssAtomLink(rss string, file string) string {
+	// inject atom namespace
+	atomre := regexp.MustCompile(`(<rss [^>]+)>`)
+	rss = atomre.ReplaceAllString(rss, `$1 xmlns:atom="http://www.w3.org/2005/Atom">`)
+
+	re := regexp.MustCompile(`(?m)^(\s+)<link>([^<]+)</link>`)
+	subst := "$1<link>$2</link>\n$1<atom:link>${2}"+file+"</atom:link>"
+
+	done := false
+	return re.ReplaceAllStringFunc(rss, func(a string) string {
+		if done {
+			return a
+		}
+		done = true
+
+		return re.ReplaceAllString(a, subst)
+	})
 }
