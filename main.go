@@ -234,7 +234,7 @@ func addRssAtomLink(rss string, file string) string {
 	rss = atomre.ReplaceAllString(rss, `$1 xmlns:atom="http://www.w3.org/2005/Atom">`)
 
 	re := regexp.MustCompile(`(?m)^(\s+)<link>([^<]+)</link>`)
-	subst := "$1<link>$2</link>\n$1<atom:link>${2}"+file+"</atom:link>"
+	subst := "$1<link>$2</link>\n"+`$1<atom:link href="${2}`+file+`" rel="self" type="application/rss+xml" />`
 
 	done := false
 	return re.ReplaceAllStringFunc(rss, func(a string) string {
